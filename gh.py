@@ -14,7 +14,7 @@ REPO              = "/repos/{}"
 repo_fields       = "name description html_url".split()
 gist_fields       = "html_url description".split()
 contrib_fields    = "name count contrib".split()
-repo_info_fields  = "full_name html_url description".split()
+repo_info_fields  = "full_name description html_url".split()
 rename            = dict(zip("description html_url full_name".split(),
                              "desc        link     name     ".split()))
 

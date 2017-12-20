@@ -18,12 +18,14 @@ repo_info_fields  = "full_name html_url description".split()
 rename            = dict(zip("description html_url full_name".split(),
                              "desc        link     name     ".split()))
 
+def get(url, verbose = False):
+  if verbose: print("==>", url, file = sys.stderr)
+  return requests.get(url)
+
 def get_paginated(url, verbose = False):
   while url:
-    if verbose: print("==>", url, file = sys.stderr)
-    resp  = requests.get(url)
+    resp  = get(url, verbose); json = resp.json()
     url   = resp.links.get("next", {}).get("url")
-    json  = resp.json()
     for x in json if isinstance(json, list) else json["items"]:
       yield x
 
@@ -51,7 +53,7 @@ def get_contribs(user, verbose = False):
   return [ dict(name = k, **v) for k,v in contribs.items() ]
 
 def get_repo_info(repo, verbose = False):
-  return requests.get(API + REPO.format(repo)).json()
+  return get(API + REPO.format(repo), verbose).json()
 
 def repos(users, verbose = False):
   return select(

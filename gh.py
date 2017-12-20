@@ -1,25 +1,31 @@
 #!/usr/bin/python3
 
 import json, requests, sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
-API         = "https://api.github.com"
-REPOS       = "/users/{}/repos"
-GISTS       = "/users/{}/gists"
+GH                = "https://github.com"
+API               = "https://api.github.com"
 
-gist_fields = "html_url description".split()
-repo_fields = "name description html_url".split()
-rename      = dict(zip("description html_url".split(),
-                       "desc        link    ".split()))
+REPOS             = "/users/{}/repos"
+GISTS             = "/users/{}/gists"
+ISSUES            = "/search/issues?q=author:{}"
+REPO              = "/repos/{}"
+
+repo_fields       = "name description html_url".split()
+gist_fields       = "html_url description".split()
+contrib_fields    = "name count contrib".split()
+repo_info_fields  = "full_name html_url description".split()
+rename            = dict(zip("description html_url full_name".split(),
+                             "desc        link     name     ".split()))
 
 def get_paginated(url, verbose = False):
-  data = []
   while url:
     if verbose: print("==>", url, file = sys.stderr)
     resp  = requests.get(url)
     url   = resp.links.get("next", {}).get("url")
-    data.extend(resp.json())
-  return data
+    json  = resp.json()
+    for x in json if isinstance(json, list) else json["items"]:
+      yield x
 
 def select(data, keys, rename = {}):
   data_ = ( OrderedDict( (rename.get(k, k), x[k]) for k in keys )
@@ -32,6 +38,19 @@ def get_repos(user, verbose = False):
 def get_gists(user, verbose = False):
   return get_paginated(API + GISTS.format(user), verbose)
 
+def get_contribs(user, verbose = False):
+  contribs = defaultdict(lambda: dict(count = 0, contrib = False))
+  for issue in get_paginated(API + ISSUES.format(user), verbose):
+    name = issue["repository_url"].replace(API + REPO.format(""), "")
+    if name.startswith(user + "/"): continue
+    contribs[name]["count"] += 1
+    if issue["author_association"] in "CONTRIBUTOR OWNER".split():
+      contribs[name]["contrib"] = True
+  return [ dict(name = k, **v) for k,v in contribs.items() ]
+
+def get_repo_info(repo, verbose = False):
+  return requests.get(API + REPO.format(repo)).json()
+
 def repos(users, verbose = False):
   return select(
     ( x for user in users for x in get_repos(user, verbose) ),
@@ -42,7 +61,17 @@ def gists(users, verbose = False):
     ( x for user in users for x in get_gists(user, verbose) ),
     gist_fields, rename)
 
-COMMANDS = "gists repos".split()
+def contribs(users, verbose = False):
+  return select(
+    ( x for user in users for x in get_contribs(user, verbose) ),
+    contrib_fields, rename)
+
+def repo_info(repos, verbose = False):
+  return select(
+    ( get_repo_info(repo, verbose) for repo in repos ),
+    repo_info_fields, rename)
+
+COMMANDS = "gists repos contribs repo_info".split()
 
 if __name__ == "__main__":
   if len(sys.argv) < 3 or sys.argv[1] not in COMMANDS:

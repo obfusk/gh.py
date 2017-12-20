@@ -1,0 +1,27 @@
+[
+  {
+    "name": "obfusk.coffee",
+    "desc": "[TODO] obfusk.coffee - functional programming library for js/coffee",
+    "link": "https://github.com/obfusk/obfusk.coffee"
+  },
+  {
+    "name": "obfusk.github.io",
+    "desc": "obfusk.github.io - /var/log/obfusk - hacking ⇒ ¬sleeping",
+    "link": "https://github.com/obfusk/obfusk.github.io"
+  },
+  {
+    "name": "obfusk.github.io-OLD",
+    "desc": "[OLD]",
+    "link": "https://github.com/obfusk/obfusk.github.io-OLD"
+  },
+  {
+    "name": "obfusk.py",
+    "desc": "obfusk.py - functional programming (& other tools) library for python (2+3)",
+    "link": "https://github.com/obfusk/obfusk.py"
+  },
+  {
+    "name": "obfusk.rb",
+    "desc": "obfusk.rb - functional programming library for ruby",
+    "link": "https://github.com/obfusk/obfusk.rb"
+  }
+]

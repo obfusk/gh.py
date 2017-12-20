@@ -7,17 +7,15 @@ API         = "https://api.github.com"
 REPOS       = "/users/{}/repos"
 GISTS       = "/users/{}/gists"
 
-user        = "obfusk"
-
-gist_fields = "description html_url".split()
-repo_fields = ["name"] + gist_fields
+gist_fields = "html_url description".split()
+repo_fields = "name description html_url".split()
 rename      = dict(zip("description html_url".split(),
                        "desc        link    ".split()))
 
-def get_paginated(url):
+def get_paginated(url, verbose = False):
   data = []
   while url:
-    print("==>", url, file = sys.stderr)
+    if verbose: print("==>", url, file = sys.stderr)
     resp  = requests.get(url)
     url   = resp.links.get("next", {}).get("url")
     data.extend(resp.json())
@@ -28,17 +26,28 @@ def select(data, keys, rename = {}):
             for x in data )
   return sorted(data_, key = lambda x: tuple(x.values()))
 
-def repos(user):
-  return select(get_paginated(API + REPOS.format(user)),
-                repo_fields, rename)
+def get_repos(user, verbose = False):
+  return get_paginated(API + REPOS.format(user), verbose)
 
-def gists(user):
-  return select(get_paginated(API + GISTS.format(user)),
-                gist_fields, rename)
+def get_gists(user, verbose = False):
+  return get_paginated(API + GISTS.format(user), verbose)
+
+def repos(users, verbose = False):
+  return select(
+    ( x for user in users for x in get_repos(user, verbose) ),
+    repo_fields, rename)
+
+def gists(users, verbose = False):
+  return select(
+    ( x for user in users for x in get_gists(user, verbose) ),
+    gist_fields, rename)
+
+COMMANDS = "gists repos".split()
 
 if __name__ == "__main__":
-  if len(sys.argv) >= 2:
-    if sys.argv[1] not in "gists repos".split(): sys.exit(1)
-    u = sys.argv[2] if len(sys.argv) >= 3 else user
-    d = globals()[sys.argv[1]](u)
-    print(json.dumps(d, indent = 2)) # sort_keys = True
+  if len(sys.argv) < 3 or sys.argv[1] not in COMMANDS:
+    print("Usage: gh.py {{ {} }} USERNAME..."
+          .format(" | ".join(COMMANDS)), file = sys.stderr)
+    sys.exit(1)
+  d = globals()[sys.argv[1]](sys.argv[2:], verbose = True)
+  print(json.dumps(d, indent = 2))  # sorted -> no sort_keys = True

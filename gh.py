@@ -27,10 +27,12 @@ def get_paginated(url, verbose = False):
     for x in json if isinstance(json, list) else json["items"]:
       yield x
 
+def renamed(x, keys, rename):
+  return OrderedDict( (rename.get(k, k), x[k]) for k in keys )
+
 def select(data, keys, rename = {}):
-  data_ = ( OrderedDict( (rename.get(k, k), x[k]) for k in keys )
-            for x in data )
-  return sorted(data_, key = lambda x: tuple(x.values()))
+  return sorted(( renamed(x, keys, rename) for x in data ),
+                key = lambda x: tuple(x.values()))
 
 def get_repos(user, verbose = False):
   return get_paginated(API + REPOS.format(user), verbose)

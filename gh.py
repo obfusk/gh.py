@@ -20,7 +20,8 @@ rename            = dict(zip("description html_url full_name".split(),
 
 def get(url, verbose = False):
   if verbose: print("==>", url, file = sys.stderr)
-  return requests.get(url)
+  resp = requests.get(url); resp.raise_for_status()
+  return resp
 
 def get_paginated(url, verbose = False):
   while url:
@@ -82,5 +83,8 @@ if __name__ == "__main__":
     print("Usage: gh.py {{ {} }} USERNAME..."
           .format(" | ".join(COMMANDS)), file = sys.stderr)
     sys.exit(1)
-  d = globals()[sys.argv[1]](sys.argv[2:], verbose = True)
+  try:
+    d = globals()[sys.argv[1]](sys.argv[2:], verbose = True)
+  except requests.exceptions.HTTPError as e:
+    print(e, file = sys.stderr); sys.exit(1)
   print(json.dumps(d, indent = 2))  # sorted -> no sort_keys = True

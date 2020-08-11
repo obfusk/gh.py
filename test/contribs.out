@@ -1,6 +1,6 @@
 [
   {
-    "name": "bundler/bundler",
+    "name": "rubygems/bundler",
     "count": 1,
     "contrib": true
   }

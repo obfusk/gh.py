@@ -2,7 +2,7 @@
 [
   {
     "name": "rack/rack",
-    "desc": "a modular Ruby webserver interface",
+    "desc": "A modular Ruby web server interface.",
     "link": "https://github.com/rack/rack"
   }
 ]

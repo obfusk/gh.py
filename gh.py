@@ -20,7 +20,10 @@ rename            = dict(zip("description html_url full_name".split(),
 
 def get(url, verbose = False):
   if verbose: print("==>", url, file = sys.stderr)
-  resp = requests.get(url); resp.raise_for_status()
+  token = os.environ.get("GITHUB_TOKEN") or None
+  hdrs  = dict(Authorization = "token " + token) if token else {}
+  resp  = requests.get(url, headers = hdrs)
+  resp.raise_for_status()
   return resp
 
 def get_paginated(url, verbose = False):
